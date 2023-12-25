@@ -37,7 +37,7 @@ func determineBrandColor(brand string) *color.Color {
 
 func createDynamicProgressBar(brand string, versionNumber string) *mpb.Bar {
 	p := mpb.New(mpb.WithWidth(64))
-	brandString := determineBrandColor(brand).Sprint(strings.ToUpper(brand))
+	brandString := determineBrandColor(brand).Sprint(brand)
 	// new bar with 'trigger complete event' disabled, because total is zero
 	bar := p.AddBar(0,
 		mpb.PrependDecorators(decor.Name(fmt.Sprintf("Downloading latest %v Driver: %v", brandString, versionNumber))),
