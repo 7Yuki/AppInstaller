@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"runtime"
+	"sync"
 )
 
 func showMenu() {
@@ -30,31 +30,54 @@ func clearScreen() {
 	c.Run()
 }
 
-func handleChoice(choice int) {
-	nvidiaVersion, _, _, err := getDriverVersions()
-	if err != nil {
-		log.Fatal(err)
-	}
+func handleChoice(path string, choice int) {
+	nvidiaVersion, amdVersion, intelVersion, _ := getDriverVersions()
+	var wg sync.WaitGroup
 
-	//clearScreen()
-
-	switch choice {
-	case 1:
-		// handle case 1
-	case 2:
-		// handle case 2
-	case 3:
+	if choice == 1 {
+		clearScreen()
+		wg.Add(1)
 		go func() {
-			if downloadErr := downloadNvidiaDriver(nvidiaVersion); downloadErr != nil {
+			defer wg.Done()
+			if downloadErr := downloadDriver(
+				intelVersion,
+				"intel",
+				path,
+			); downloadErr != nil {
 				fmt.Println(downloadErr)
 			}
 		}()
-		fmt.Println("Download complete")
+		wg.Wait()
 
-	case 0:
-		fmt.Println("Exiting...")
-		os.Exit(0)
-	default:
-		fmt.Println("Invalid choice")
+	} else if choice == 2 {
+		clearScreen()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if downloadErr := downloadDriver(
+				amdVersion,
+				"amd",
+				path,
+			); downloadErr != nil {
+				fmt.Println(downloadErr)
+			}
+		}()
+		wg.Wait()
+
+	} else if choice == 3 {
+		clearScreen()
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if downloadErr := downloadDriver(
+				nvidiaVersion,
+				"nvidia",
+				path,
+			); downloadErr != nil {
+				fmt.Println(downloadErr)
+			}
+		}()
+		wg.Wait()
+		fmt.Println("Done!")
 	}
 }
