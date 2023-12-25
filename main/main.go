@@ -1,8 +1,8 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"sync"
 )
 
 /*
@@ -54,52 +54,22 @@ var applications = map[string]application{
 }*/
 
 func main() {
+
+	path := flag.String("path", "/Users/smile/Downloads", "Path to download files to")
+	flag.Parse()
+
 	for {
 		clearScreen()
 
 		showMenu()
 
+		fmt.Print("\n> ")
 		var choice int
 		fmt.Scanln(&choice)
 
-		var wg sync.WaitGroup
+		handleChoice(*path, choice)
 
-		if choice == 1 {
-			clearScreen()
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				if downloadErr := downloadNvidiaDriver("546.33"); downloadErr != nil {
-					fmt.Println("INTEL DRIVER DONE!")
-					fmt.Println(downloadErr)
-				}
-			}()
-			wg.Wait()
-
-		} else if choice == 2 {
-			clearScreen()
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				if downloadErr := downloadNvidiaDriver("546.33"); downloadErr != nil {
-					fmt.Println("AMD DRIVER DONE!")
-					fmt.Println(downloadErr)
-				}
-			}()
-			wg.Wait()
-
-		} else if choice == 3 {
-			clearScreen()
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				if downloadErr := downloadNvidiaDriver("546.33"); downloadErr != nil {
-					fmt.Println(downloadErr)
-				}
-			}()
-			wg.Wait()
-			fmt.Println("Done!")
-		} else if choice == 0 {
+		if choice == 0 {
 			fmt.Println("Exiting...")
 			break
 		}
