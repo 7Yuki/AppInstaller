@@ -5,12 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -38,25 +35,6 @@ func getDriverVersions() (nvidiaVersion, amdVersion, intelVersion string, err er
 	}
 
 	return nvidiaVersion, amdVersion, intelVersion, nil
-}
-
-func downloadFile(url string, path string, filename string) error {
-
-	outputFile, err := os.Create(filepath.Join(path, filename))
-	if err != nil {
-		return err
-	}
-	defer outputFile.Close()
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	_, err = io.Copy(outputFile, resp.Body)
-	fmt.Println("Done downloading file!")
-	return err
 }
 
 func getLatestVersionNumber(rawLink string) (string, error) {
