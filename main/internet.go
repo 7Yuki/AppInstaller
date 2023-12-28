@@ -108,6 +108,7 @@ func downloadAppWithJS(site string, selector string) error {
 	bar := createDynamicProgressBarf(fmt.Sprintf("Downloading file from %s", site))
 
 	geziyor.NewGeziyor(&geziyor.Options{
+		LogDisabled: true,
 		StartRequestsFunc: func(g *geziyor.Geziyor) {
 			g.GetRendered(site, g.Opt.ParseFunc)
 		},
