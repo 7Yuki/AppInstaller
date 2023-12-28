@@ -35,12 +35,11 @@ func determineBrandColor(brand string) *color.Color {
 	return brandColor
 }
 
-func createDynamicProgressBar(brand string, versionNumber string) *mpb.Bar {
+func createDynamicProgressBarf(message string) *mpb.Bar {
 	p := mpb.New(mpb.WithWidth(64))
-	brandString := determineBrandColor(brand).Sprint(brand)
 	// new bar with 'trigger complete event' disabled, because total is zero
 	bar := p.AddBar(0,
-		mpb.PrependDecorators(decor.Name(fmt.Sprintf("Downloading latest %v Driver: %v", brandString, versionNumber))),
+		mpb.PrependDecorators(decor.Name(message)),
 		mpb.AppendDecorators(decor.Percentage()),
 	)
 
@@ -63,4 +62,36 @@ func createDynamicProgressBar(brand string, versionNumber string) *mpb.Bar {
 	p.Wait()
 
 	return bar
+}
+
+func createDynamicProgressBar(brand string, versionNumber string) *mpb.Bar {
+	/*	p := mpb.New(mpb.WithWidth(64))
+		brandString := determineBrandColor(brand).Sprint(brand)
+		// new bar with 'trigger complete event' disabled, because total is zero
+		bar := p.AddBar(0,
+			mpb.PrependDecorators(decor.Name(fmt.Sprintf("Downloading latest %v Driver: %v", brandString, versionNumber))),
+			mpb.AppendDecorators(decor.Percentage()),
+		)
+
+		maxSleep := 100 * time.Millisecond
+		read := makeStream(200)
+		for {
+			n, err := read()
+			if err == io.EOF {
+				// triggering complete event now
+				bar.SetTotal(-1, true)
+				break
+			}
+			// increment methods won't trigger complete event because bar was constructed with total = 0
+			bar.IncrBy(n)
+			// following call is not required, it's called to show some progress instead of an empty bar
+			bar.SetTotal(bar.Current()+2048, false)
+			time.Sleep(time.Duration(rand.Intn(10)+1) * maxSleep / 10)
+		}
+
+		p.Wait()*/
+
+	brandString := determineBrandColor(brand).Sprint(brand)
+
+	return createDynamicProgressBarf(fmt.Sprintf("Downloading latest %s Driver: %s", brandString, versionNumber))
 }

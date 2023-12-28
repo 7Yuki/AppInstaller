@@ -3,8 +3,11 @@ package main
 import (
 	"errors"
 	"fmt"
+	"github.com/geziyor/geziyor"
+	"github.com/geziyor/geziyor/client"
 	"github.com/vbauerster/mpb/v8"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -23,6 +26,7 @@ func downloadFileProgressBar(url string, outFile *os.File, bar *mpb.Bar) error {
 	if strings.Contains(url, "amd.com") {
 		req.Header.Set("Referer", "https://www.amd.com/")
 	}
+
 	resp, err := client.Do(req)
 	if err != nil {
 		return err
@@ -78,5 +82,68 @@ func downloadDriver(version string, brand string, path string) error {
 	}
 	bar.Wait()
 
+	return nil
+}
+
+func downloadApp(site string, selector string) error {
+
+	geziyor.NewGeziyor(&geziyor.Options{
+		StartURLs: []string{site},
+		ParseFunc: func(g *geziyor.Geziyor, r *client.Response) {
+			attr := r.HTMLDoc.Find(selector)
+			value, exists := attr.Attr("href")
+			if exists {
+				log.Printf("attr: %v", value)
+			}
+		},
+	}).Start()
+
+	return nil
+}
+
+func downloadAppWithJS(site string, selector string) error {
+
+	attrErr := errors.New("")
+	downloadUrl := ""
+	bar := createDynamicProgressBarf(fmt.Sprintf("Downloading file from %s", site))
+
+	geziyor.NewGeziyor(&geziyor.Options{
+		StartRequestsFunc: func(g *geziyor.Geziyor) {
+			g.GetRendered(site, g.Opt.ParseFunc)
+		},
+		ParseFunc: func(g *geziyor.Geziyor, r *client.Response) {
+			attr := r.HTMLDoc.Find(selector)
+			value, exists := attr.Attr("href")
+			if exists {
+				downloadUrl = value
+				log.Printf("link: %s", value)
+				return
+			}
+			attrErr = fmt.Errorf("couldnt find value from: %s", selector)
+		},
+	}).Start()
+
+	if attrErr.Error() != "" {
+		return attrErr
+	}
+
+	if downloadUrl == "" {
+		return errors.New("download url blank")
+	}
+
+	fileName := fmt.Sprintf("%v/msiafterburnersetup.zip", "/Users/smile/Downloads")
+
+	outFile, fileErr := os.Create(fileName)
+	log.Println("created file")
+	if fileErr != nil {
+		panic(fileErr)
+	}
+	defer outFile.Close()
+
+	downloadFileErr := downloadFileProgressBar(downloadUrl, outFile, bar)
+	if downloadFileErr != nil {
+		return downloadFileErr
+	}
+	log.Println("downloaded content to file")
 	return nil
 }

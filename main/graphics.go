@@ -19,22 +19,46 @@ const (
 
 func getDriverVersions() (nvidiaVersion, amdVersion, intelVersion string, err error) {
 
-	nvidiaVersion, err = getLatestVersionNumber(getLatestVersionNumberUrl(2))
-	if err != nil {
-		return "", "", "", err
+	drivers := map[string]*string{
+		"amd":    &amdVersion,
+		"nvidia": &nvidiaVersion,
+		"intel":  &intelVersion,
 	}
 
-	amdVersion, err = getLatestVersionNumber(getLatestVersionNumberUrl(1))
-	if err != nil {
-		return "", "", "", err
+	urlLookup := map[string]int{
+		"amd":    1,
+		"nvidia": 2,
+		"intel":  3,
 	}
 
-	intelVersion, err = getLatestVersionNumber(getLatestVersionNumberUrl(3))
-	if err != nil {
-		return "", "", "", err
+	for driver, version := range drivers {
+		*version, err = getLatestVersionNumber(getLatestVersionNumberUrl(urlLookup[driver]))
+		if err != nil {
+			log.Fatalf("Errored getting latest version number for %v", driver)
+			return "", "", "", err
+		}
 	}
 
 	return nvidiaVersion, amdVersion, intelVersion, nil
+}
+
+func getLatestVersionNumberUrl(divChild int) string {
+
+	bodyBytes, err := httpGet(videoCardzUrl)
+	if err != nil {
+		return err.Error()
+	}
+
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(bodyBytes))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	selectorString := fmt.Sprintf("#vc-maincontainer-related > div:nth-child(%d) > a:nth-child(2)", divChild)
+
+	link := doc.Find(selectorString).Nodes[0].Attr[0].Val
+
+	return link
 }
 
 func getLatestVersionNumber(rawLink string) (string, error) {
@@ -80,23 +104,4 @@ func httpGet(url string) ([]byte, error) {
 	}
 
 	return bodyBytes, nil
-}
-
-func getLatestVersionNumberUrl(divChild int) string {
-
-	bodyBytes, err := httpGet(videoCardzUrl)
-	if err != nil {
-		return err.Error()
-	}
-
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(bodyBytes))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	selectorString := fmt.Sprintf("#vc-maincontainer-related > div:nth-child(%d) > a:nth-child(2)", divChild)
-
-	link := doc.Find(selectorString).Nodes[0].Attr[0].Val
-
-	return link
 }

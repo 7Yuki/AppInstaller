@@ -25,10 +25,8 @@ func parseGitHubURL(githubURL string) (string, string, error) {
 
 	pathComponents := strings.Split(u.Path, "/")
 
-	// The owner is the second component in the path
 	owner := pathComponents[1]
 
-	// The repo name is the third component in the path
 	repoName := pathComponents[2]
 
 	return owner, repoName, nil
@@ -40,24 +38,19 @@ const (
 )
 
 func downloadLatestAssetRelease(repoURL string, filePath string) error {
-	// Extract the owner's name and repo's name from the URL
+
 	parts := strings.Split(repoURL, "/")
 	owner := parts[len(parts)-2]
 	repo := parts[len(parts)-1]
 
-	// Construct the GitHub API URL for the repository releases
 	releasesURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/releases", owner, repo)
 
-	// Create a new HTTP client
 	client := &http.Client{}
 
-	// Create a new GET request
 	req, err := http.NewRequest("GET", releasesURL, nil)
 	if err != nil {
 		return err
 	}
-
-	// Set the authentication header if an auth token is provided
 
 	req.Header.Set("Authorization", githubAuthToken)
 
@@ -68,12 +61,6 @@ func downloadLatestAssetRelease(repoURL string, filePath string) error {
 	}
 	defer resp.Body.Close()
 
-	// Parse the response JSON to extract the URL of the latest asset
-	// Assuming the response is in JSON format
-	// You might need to adjust this depending on the structure of the GitHub API response
-	// For example, if the response is in XML format, you would need to use an XML parser instead
-	// This is just a simplified example
-	// Make sure to handle error cases properly in your actual implementation
 	latestAssetURL := parseLatestAssetURL(resp.Body)
 
 	// Create a new GET request to download the latest asset
@@ -82,25 +69,20 @@ func downloadLatestAssetRelease(repoURL string, filePath string) error {
 		return err
 	}
 
-	// Set the authentication header if an auth token is provided
-
 	req.Header.Set("Authorization", githubAuthToken)
 
-	// Send the request
 	resp, err = client.Do(req)
 	if err != nil {
 		return err
 	}
 	defer resp.Body.Close()
 
-	// Create the file to save the asset
 	file, err := os.Create(filePath + string(os.PathSeparator) + "latest_asset.zip")
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// Copy the response body to the file
 	_, err = io.Copy(file, resp.Body)
 	if err != nil {
 		return err
