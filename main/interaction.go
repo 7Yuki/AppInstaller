@@ -37,9 +37,8 @@ func handleChoice(path string, choice int) {
 	var wg sync.WaitGroup
 
 	if choice == 1 {
-		clearScreen()
-		wg.Add(1)
-		go func() {
+
+		handleGoroutine(&wg, func() {
 			defer wg.Done()
 			if downloadErr := downloadDriver(
 				intelVersion,
@@ -48,13 +47,12 @@ func handleChoice(path string, choice int) {
 			); downloadErr != nil {
 				fmt.Println(downloadErr)
 			}
-		}()
+		})
 		wg.Wait()
 
 	} else if choice == 2 {
-		clearScreen()
-		wg.Add(1)
-		go func() {
+
+		handleGoroutine(&wg, func() {
 			defer wg.Done()
 			if downloadErr := downloadDriver(
 				amdVersion,
@@ -63,13 +61,13 @@ func handleChoice(path string, choice int) {
 			); downloadErr != nil {
 				fmt.Println(downloadErr)
 			}
-		}()
+		})
+
 		wg.Wait()
 
 	} else if choice == 3 {
-		clearScreen()
-		wg.Add(1)
-		go func() {
+
+		handleGoroutine(&wg, func() {
 			defer wg.Done()
 			if downloadErr := downloadDriver(
 				nvidiaVersion,
@@ -78,22 +76,26 @@ func handleChoice(path string, choice int) {
 			); downloadErr != nil {
 				fmt.Println(downloadErr)
 			}
-		}()
+		})
 		wg.Wait()
 		fmt.Println("Done!")
+
 	} else if choice == 4 {
-		clearScreen()
-		wg.Add(1)
-		go func() {
+		handleGoroutine(&wg, func() {
 			defer wg.Done()
 			downloadErr := downloadAppWithJS("https://www.msi.com/Landing/afterburner/graphics-cards", "body > main > section.kv > div > div.kv__btn > a")
 			if downloadErr != nil {
 				log.Fatal(downloadErr)
 				return
 			}
-
-		}()
+		})
 		wg.Wait()
 		fmt.Println("Done!")
 	}
+}
+
+func handleGoroutine(wg *sync.WaitGroup, f func()) {
+	clearScreen()
+	wg.Add(1)
+	go f()
 }
